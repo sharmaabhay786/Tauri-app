@@ -2,83 +2,142 @@
 import React, { useState, useEffect } from "react";
 import { invoke } from "@tauri-apps/api/core";
 
+import "./App.css";
 
-function App() {
-  const [count, setCount] = useState(0);
+const App = () => {
+  const [items, setItems] = useState([]);
+  const [newItem, setNewItem] = useState("");
+  const [counter, setCounter] = useState(0);
 
-  // Function to fetch the current counter from the backend
-  const getCounter = async () => {
-    try {
-      const currentCount = await invoke("get_counter");
-      setCount(currentCount);
-    } catch (e) {
-      console.error("Error fetching counter:", e);
-    }
-  };
-
-  // Fetch the initial counter value when the app loads
+  // Fetch items on initial load
   useEffect(() => {
-    getCounter();
+    const loadItems = async () => {
+      const response = await invoke("get_items");
+      setItems(response);
+    };
+
+    const loadCounter = async () => {
+      const currentCounter = await invoke("get_counter");
+      setCounter(currentCounter);
+    };
+
+    loadItems();
+    loadCounter();
   }, []);
 
-  // Increment the counter (calls the backend)
-  const increment = async () => {
-    try {
-      await invoke("increment");
-      getCounter(); // Fetch updated counter value
-    } catch (e) {
-      console.error("Error incrementing counter:", e);
+  // Handle creating a new item
+  const handleCreate = async () => {
+    if (!newItem) return;
+    console.log(newItem);
+    const response = await invoke("create_item", { name: newItem });
+    setItems((prevItems) => [...prevItems, response]);
+    setNewItem("");
+  };
+
+  // Handle deleting an item
+  const handleDelete = async (id) => {
+    await invoke("delete_item", { id });
+    setItems((prevItems) => prevItems.filter((item) => item.id !== id));
+  };
+
+  // Handle updating an item
+  const handleUpdate = async (id, name) => {
+    const updatedName = prompt("Update the item", name);
+    if (updatedName) {
+      const updatedItem = await invoke("update_item", {
+        id,
+        name: updatedName,
+      });
+      setItems((prevItems) =>
+        prevItems.map((item) => (item.id === id ? updatedItem : item))
+      );
     }
   };
 
-  // Decrement the counter (calls the backend)
-  const decrement = async () => {
-    try {
-      await invoke("decrement");
-      getCounter(); // Fetch updated counter value
-    } catch (e) {
-      console.error("Error decrementing counter:", e);
-    }
+  // Counter functions
+  const incrementCounter = async () => {
+    await invoke("increment");
+    const currentCounter = await invoke("get_counter");
+    setCounter(currentCounter);
   };
 
-  // Reset the counter (calls the backend)
-  const reset = async () => {
-    try {
-      await invoke("reset");
-      getCounter(); // Fetch updated counter value
-    } catch (e) {
-      console.error("Error resetting counter:", e);
-    }
+  const decrementCounter = async () => {
+    await invoke("decrement");
+    const currentCounter = await invoke("get_counter");
+    setCounter(currentCounter);
+  };
+
+  const resetCounter = async () => {
+    await invoke("reset");
+    const currentCounter = await invoke("get_counter");
+    setCounter(currentCounter);
   };
 
   return (
-    <div
-      style={{
-        display: "flex", // Use Flexbox to align content
-        justifyContent: "center", // Center horizontally
-        alignItems: "center", // Center vertically
-        height: "100vh", // Make the div take full height of the viewport
-        width: "100vw", // Make the div take full width of the viewport
-      }}
-    >
-      <div style={{ textAlign: "center",  }}>
-        <h1>Counter: {count}</h1>
-        <div
-          style={{
-            marginTop: "20px", // Add some margin to the top of the button container
-            padding: "20px", // Add padding to the div
-            display: "flex", // Use flex to align the buttons horizontally
-            justifyContent: "center", // Center the buttons
-            gap: "15px", // Add space between buttons
-          }}
+    <div>
+      <h1>React + Tauri CRUD App with MongoDB</h1>
+
+      {/* Counter Section */}
+      <div>
+        <h2>Counter: {counter}</h2>
+        <button
+          onClick={incrementCounter}
+          style={{ padding: "10px 20px", margin: "5px" }}
         >
-          <button onClick={increment}>Increment</button>
-          <button onClick={decrement}>Decrement</button>
-          <button onClick={reset}>Reset</button>
-        </div>
+          Increment
+        </button>
+        <button
+          onClick={decrementCounter}
+          style={{ padding: "10px 20px", margin: "5px" }}
+        >
+          Decrement
+        </button>
+        <button
+          onClick={resetCounter}
+          style={{ padding: "10px 20px", margin: "5px" }}
+        >
+          Reset
+        </button>
+      </div>
+
+      {/* CRUD Section */}
+      <div>
+        <input
+          type="text"
+          value={newItem}
+          onChange={(e) => setNewItem(e.target.value)}
+          style={{ padding: "10px 20px", margin: "5px" }}
+          placeholder="Enter Text"
+        />
+        <button
+          onClick={handleCreate}
+          style={{ padding: "10px 20px", margin: "5px" }}
+        >
+          Submit
+        </button>
+
+        <ul style={{ listStyleType: "none", paddingLeft: 0 }}>
+          {items.map((item) => (
+            <li key={item.id}>
+              {item.name}
+              <button
+                onClick={() => handleUpdate(item.id, item.name)}
+                style={{ padding: "5px 10px", margin: "5px" }}
+              >
+                Edit
+              </button>
+              <button
+                onClick={() => handleDelete(item.id)}
+                style={{ padding: "5px 10px", margin: "5px" }}
+              >
+                Delete
+              </button>
+            </li>
+          ))}
+        </ul>
       </div>
     </div>
   );
-}
+};
 
 export default App;
