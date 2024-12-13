@@ -1,4 +1,6 @@
 import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
+import tauri from 'vite-plugin-tauri';
 
 // eslint-disable-next-line no-undef
 const host = process.env.TAURI_DEV_HOST;
@@ -28,5 +30,7 @@ export default defineConfig({
     // produce sourcemaps for debug builds
     // eslint-disable-next-line no-undef
     sourcemap: !!process.env.TAURI_ENV_DEBUG,
+    plugins: [react(), tauri()],
+    
   },
 });

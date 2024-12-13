@@ -2,14 +2,13 @@
 name = "app"
 version = "0.1.0"
 description = "A Tauri App"
-authors = ["you"]
+authors = ["Abhay Sharma"]
 license = ""
 repository = ""
 edition = "2021"
 rust-version = "1.77.2"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
+# Library configuration
 [lib]
 name = "app_lib"
 crate-type = ["staticlib", "cdylib", "rlib"]
@@ -17,9 +16,15 @@ crate-type = ["staticlib", "cdylib", "rlib"]
 [build-dependencies]
 tauri-build = { version = "2.0.2", features = [] }
 
+# Dependencies
 [dependencies]
 serde_json = "1.0"
 serde = { version = "1.0", features = ["derive"] }
 log = "0.4"
-tauri = { version = "2.1.1", features = [] }
+tauri = { version = "2.1.1", features = [] }  # Removed 'features = ["window"]' as it's included by default
 tauri-plugin-log = "2.0.0-rc"
+rand = "0.8"
+mongodb = "2.0"  # MongoDB Rust driver
+tokio = { version = "1", features = ["full"] }  # Asynchronous runtime for MongoDB
+uuid = { version = "1.0", features = ["v4"] }
+futures-util = "0.3"
