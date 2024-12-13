@@ -56,4 +56,4 @@ sudo apt install libwebkit2gtk-4.1-dev \
 
 Here's an image from my project
 
-![Image](ui.png)
+![Image](uiImg.png)
